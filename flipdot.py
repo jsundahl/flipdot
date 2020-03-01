@@ -3,7 +3,7 @@ import signal
 import sys
 import time
 
-from characters import Characters
+from scrolling_text import scrolling_text
 
 ON = False
 OFF = True
@@ -116,27 +116,27 @@ class FlipDot:
             self._pulse(rows[y])
             GPIO.output(cols[x], OFF)
 
-    def set_from_matrix(self, matrix):
+    def set_from_frame(self, frame):
         """
         set the display from a 5x7 matrix
         1 is on, 0 is off
         """
-        if len(matrix) != 5 or len(matrix[0]) != 7:
-            raise Exception("bad matrix dimensions")
+        if len(frame) != 5 or len(frame[0]) != 7:
+            raise Exception("bad frame dimensions")
 
         # TODO: decompose into cubes to optimize write time
         for i in range(5):
             for j in range(7):
-                if matrix[4 - i][j]:
+                if frame[4 - i][j]:
                     self.set_xy(i, j)
 
 
 flipDot = FlipDot()
 
 while True:
-    for matrix in Characters.string_to_matrices("click_clack"):
-        flipDot.set_from_matrix(matrix)
+    for frame in scrolling_text('hello world!'):
+        flipDot.set_from_frame(frame)
         time.sleep(0.5)
         flipDot.blank_all()
-        time.sleep(0.2)
-    time.sleep(0.2)
+        time.sleep(0.1)
+    time.sleep(1)
