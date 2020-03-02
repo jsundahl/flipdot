@@ -47,7 +47,7 @@ class FlipDot:
         time.sleep(seconds)
         GPIO.output(pin, OFF)
 
-    class _ColumnsSetTo:
+    class _ColumnPolarity:
         def __init__(self, value, flipDot):
             """
             columns by default are disconnected. This is a way to make sure
@@ -84,7 +84,7 @@ class FlipDot:
         GPIO.output(common_set, ON)
         time.sleep(5e-3)
 
-        with self._ColumnsSetTo(ON, self):
+        with self._ColumnPolarity(ON, self):
             for col in cols:
                 self._pulse(col, 10e-3)
 
@@ -94,7 +94,7 @@ class FlipDot:
         """
         set the whole screen to yellow
         """
-        with self._ColumnsSetTo(OFF, self):
+        with self._ColumnPolarity(OFF, self):
             for col in cols:
                 GPIO.output(col, ON)
 
@@ -104,17 +104,31 @@ class FlipDot:
 
                 GPIO.output(col, OFF)
 
-    def set_xy(self, x, y):
+    def _set_xy(self, x, y):
         """
         set the dot at (x, y) to yellow
         """
         if not ((0 <= x < 5) and (0 <= y < 7)):
             raise IndexError(f"dot ({x}, {y}) out of range")
 
-        with self._ColumnsSetTo(OFF, self):
+        with self._ColumnPolarity(OFF, self):
             GPIO.output(cols[x], ON)
             self._pulse(rows[y])
             GPIO.output(cols[x], OFF)
+
+    def _set_row(self, index, row):
+        if not (0 <= index < 7) and len(row) == 5:
+            raise Exception("bad row specification")
+
+        def set_columns_to(value):
+            for i in range(5):
+                if row[i]:
+                    GPIO.output(cols[i], value)
+
+        with self._ColumnPolarity(OFF, self):
+            set_columns_to(ON)
+            self._pulse(rows[index])
+            set_columns_to(OFF)
 
     def set_from_frame(self, frame):
         """
@@ -125,10 +139,8 @@ class FlipDot:
             raise Exception("bad frame dimensions")
 
         # TODO: decompose into cubes to optimize write time
-        for i in range(5):
-            for j in range(7):
-                if frame[4 - i][j]:
-                    self.set_xy(i, j)
+        for i in range(7):
+            self._set_row(i, [frame[4 - j][i] for j in range(5)])
 
 
 flipDot = FlipDot()
