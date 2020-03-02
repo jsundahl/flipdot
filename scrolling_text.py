@@ -1,7 +1,7 @@
 from characters import Characters
 
 
-def scrolling_text(text, start_from_right=True):
+def scrolling_text(text, start_from_right=True, scroll_length=1):
     """
     take in a string, output a generator that is a series of
     frames (5x7 matrices)
@@ -19,13 +19,13 @@ def scrolling_text(text, start_from_right=True):
 
         while len(matrix[0]) >= 7:
             yield [col[:7] for col in matrix]
-            matrix = [col[1:] for col in matrix]
+            matrix = [col[scroll_length:] for col in matrix]
 
     while(len(matrix[0]) > 0):
         padding = [0 for _ in range(7 - len(matrix[0]))]
         yield [matrix[i] + padding for i in range(5)]
 
-        matrix = [col[1:] for col in matrix]
+        matrix = [col[scroll_length:] for col in matrix]
 
 
 def _trim_frame(frame):
